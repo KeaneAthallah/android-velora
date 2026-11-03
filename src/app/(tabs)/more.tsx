@@ -42,64 +42,7 @@ type UpcomingModule = {
   phase: string;
 };
 
-const UPCOMING: UpcomingModule[] = [
-  {
-    key: "orders",
-    label: "Orders",
-    subtitle: "Open tabs, status and kitchen flow",
-    icon: ClipboardList,
-    permission: "orders.view",
-    phase: "Phase 5",
-  },
-  {
-    key: "kitchen",
-    label: "Kitchen",
-    subtitle: "Stations, tickets and preparation",
-    icon: ShoppingBag,
-    permission: "kitchen.view",
-    phase: "Phase 5",
-  },
-  {
-    key: "inventory",
-    label: "Inventory",
-    subtitle: "Balances, movements and transfers",
-    icon: Package,
-    permission: "inventory.view",
-    phase: "Phase 5",
-  },
-  {
-    key: "customers",
-    label: "Customers",
-    subtitle: "Directory, search and profiles",
-    icon: Users,
-    permission: "customers.view",
-    phase: "Phase 5",
-  },
-  {
-    key: "purchasing",
-    label: "Purchasing",
-    subtitle: "Suppliers, purchase orders and receiving",
-    icon: Truck,
-    permission: "purchasing.view",
-    phase: "Phase 5",
-  },
-  {
-    key: "shifts",
-    label: "Shifts",
-    subtitle: "Registers, opening and cash movements",
-    icon: Wallet,
-    permission: "shifts.view",
-    phase: "Phase 5",
-  },
-  {
-    key: "reports",
-    label: "Reports",
-    subtitle: "Sales, product and stock reports",
-    icon: BarChart3,
-    permission: "reports.view",
-    phase: "Phase 6",
-  },
-];
+const UPCOMING: UpcomingModule[] = [];
 
 export default function MoreScreen() {
   const { colors } = useTheme();
@@ -236,6 +179,90 @@ export default function MoreScreen() {
                   title="Products"
                   subtitle="Catalogue, search and details"
                   onPress={() => router.navigate("/products")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("orders.view") ? (
+              <>
+                <ListRow
+                  icon={ClipboardList}
+                  title="Orders"
+                  subtitle="Open tabs, status and kitchen flow"
+                  onPress={() => router.navigate("/orders")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("inventory.view") ? (
+              <>
+                <ListRow
+                  icon={Package}
+                  title="Inventory"
+                  subtitle="Balances and adjustments"
+                  onPress={() => router.push("/inventory")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("kitchen.view") ? (
+              <>
+                <ListRow
+                  icon={ShoppingBag}
+                  title="Kitchen"
+                  subtitle="Tickets and preparation"
+                  onPress={() => router.push("/kitchen")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("customers.view") ? (
+              <>
+                <ListRow
+                  icon={Users}
+                  title="Customers"
+                  subtitle="Directory and profiles"
+                  onPress={() => router.push("/customers")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("purchasing.view") ? (
+              <>
+                <ListRow
+                  icon={Truck}
+                  title="Purchasing"
+                  subtitle="Purchase orders"
+                  onPress={() => router.push("/purchasing")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("shifts.view") ? (
+              <>
+                <ListRow
+                  icon={Wallet}
+                  title="Shifts"
+                  subtitle="Registers and cash"
+                  onPress={() => router.push("/shifts")}
+                />
+                <Divider />
+              </>
+            ) : null}
+
+            {has("reports.view") ? (
+              <>
+                <ListRow
+                  icon={BarChart3}
+                  title="Reports"
+                  subtitle="Sales and stock"
+                  onPress={() => router.push("/reports")}
                 />
                 <Divider />
               </>

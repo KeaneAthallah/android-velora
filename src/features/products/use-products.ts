@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   fetchCategories,
@@ -7,27 +8,32 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { usePermissions } from "@/providers/auth-provider";
 import { useTenant } from "@/providers/tenant-provider";
+import { cacheCategories } from "@/services/offline-cache";
 
 const PAGE_SIZE = 20;
 
 export function useInfiniteProducts({
   search,
   categoryId,
+  activeOnly = false,
 }: {
   search: string;
   categoryId: string | null;
+  /** The register only sells active products. */
+  activeOnly?: boolean;
 }) {
   const { has } = usePermissions();
   const { businessId } = useTenant();
 
   return useInfiniteQuery({
-    queryKey: queryKeys.products(businessId, { search, categoryId }),
+    queryKey: queryKeys.products(businessId, { search, categoryId, activeOnly }),
     queryFn: ({ pageParam }) =>
       fetchProducts({
         page: pageParam,
         perPage: PAGE_SIZE,
         search,
         categoryId,
+        isActive: activeOnly ? true : undefined,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) =>
@@ -42,12 +48,20 @@ export function useCategories() {
   const { has } = usePermissions();
   const { businessId } = useTenant();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: queryKeys.categories(businessId),
     queryFn: fetchCategories,
     enabled: Boolean(businessId) && has("products.view"),
     staleTime: 10 * 60 * 1_000,
   });
+
+  useEffect(() => {
+    if (businessId && query.data) {
+      void cacheCategories(businessId, query.data);
+    }
+  }, [businessId, query.data]);
+
+  return query;
 }
 
 export function useProduct(productId: string | null) {

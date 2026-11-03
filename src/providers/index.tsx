@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/theme";
 import { ToastProvider } from "@/components/providers/toast";
 import { AuthProvider } from "@/providers/auth-provider";
 import { TenantProvider } from "@/providers/tenant-provider";
+import { OfflineProvider } from "@/providers/offline-provider";
 
 /**
  * Provider order matters:
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-            <TenantProvider>{children}</TenantProvider>
+            <TenantProvider>
+              <OfflineProvider>{children}</OfflineProvider>
+            </TenantProvider>
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>

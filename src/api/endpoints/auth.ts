@@ -197,6 +197,14 @@ export async function signInRequest(input: SignInInput): Promise<string> {
   return response.token;
 }
 
+export async function googleSignInRequest(idToken: string): Promise<string> {
+  const response = await apiRequest<AuthResponse>("/auth/google/token", {
+    method: "POST",
+    body: { id_token: idToken },
+  });
+  return response.token;
+}
+
 export async function signUpRequest(input: SignUpInput): Promise<string> {
   const response = await apiRequest<AuthResponse>("/auth/register", {
     method: "POST",

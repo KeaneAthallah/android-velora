@@ -130,13 +130,17 @@ export type ProductSalesRow = {
   total: string;
 };
 
+export type OrderType = "dine_in" | "takeaway" | "delivery" | "pickup";
+
 export type SaleItem = {
   id: string;
   productName: string;
   sku: string;
   quantity: string;
   unitPrice: string;
+  discountAmount: string;
   lineTotal: string;
+  notes: string | null;
 };
 
 export type SalePayment = {
@@ -144,6 +148,7 @@ export type SalePayment = {
   method: string;
   amount: string;
   status: string;
+  reference: string | null;
 };
 
 export type Sale = {
@@ -151,13 +156,61 @@ export type Sale = {
   receiptNumber: string;
   orderNumber: string;
   status: string;
+  orderStatus: string;
   orderType: string;
   subtotal: string;
   discountAmount: string;
   taxAmount: string;
   total: string;
   paidAmount: string;
+  changeAmount: string;
+  notes: string | null;
+  voidReason: string | null;
+  voidedAt: string | null;
   createdAt: string;
   items: SaleItem[];
   payments: SalePayment[];
+};
+
+/** `GET /sales/{id}/receipt` — a sale plus the entities a printed receipt needs. */
+export type SaleReceipt = Sale & {
+  outletName: string;
+  outletAddress: string | null;
+  outletPhone: string | null;
+  cashierName: string;
+  customerName: string | null;
+  promotionCode: string | null;
+  promotionDiscount: string;
+};
+
+/** A payment rail provisioned for the business (`GET /payment-methods`). */
+export type PaymentMethod = {
+  id: string;
+  code: string;
+  name: string;
+  /** `cash | qris | debit_card | credit_card | ewallet | transfer | other` */
+  type: string;
+  requiresReference: boolean;
+  isActive: boolean;
+  sortOrder: number;
+};
+
+/**
+ * `POST /promotions/preview` — the server's authoritative cart arithmetic.
+ * The client never adds up a total for a customer; it shows this.
+ */
+export type CartPreview = {
+  subtotal: string;
+  discountAmount: string;
+  promotion: {
+    id: string;
+    name: string;
+    code: string | null;
+    type: string;
+    value: string;
+  } | null;
+  promotionDiscount: string;
+  loyaltyDiscount: string;
+  taxAmount: string;
+  total: string;
 };

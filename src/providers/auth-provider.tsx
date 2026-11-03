@@ -13,6 +13,7 @@ import {
   logoutRequest,
   signInRequest,
   signUpRequest,
+  googleSignInRequest,
   type SignInInput,
   type SignUpInput,
 } from "@/api/endpoints/auth";
@@ -37,6 +38,7 @@ type AuthContextValue = {
   has: (required: Permission | Permission[] | null | undefined) => boolean;
   signIn: (input: SignInInput) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
+  signInWithGoogle: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
   switchBusiness: (businessId: string) => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -167,6 +169,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [loadSession, queryClient],
   );
 
+  const signInWithGoogle = useCallback(
+    async (idToken: string) => {
+      const token = await googleSignInRequest(idToken);
+      await persistToken(token);
+      try {
+        const next = await loadSession(null);
+        void setStoredBusinessId(next.activeBusiness?.id ?? null);
+        queryClient.clear();
+      } catch (error) {
+        await clearDeviceSession();
+        setSession(null);
+        setStatus("anonymous");
+        throw error;
+      }
+    },
+    [loadSession, queryClient],
+  );
+
   const signOut = useCallback(async () => {
     await logoutRequest();
     await clearDeviceSession();
@@ -213,6 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       has,
       signIn,
       signUp,
+      signInWithGoogle,
       signOut,
       switchBusiness,
       refreshSession,
@@ -226,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       has,
       signIn,
       signUp,
+      signInWithGoogle,
       signOut,
       switchBusiness,
       refreshSession,

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
 import { ArrowRight, Lock, Mail, TriangleAlert } from "lucide-react-native";
 import { useTheme } from "@/theme";
 import { useAuth } from "@/providers/auth-provider";
@@ -12,6 +14,8 @@ import { BootErrorNotice } from "@/components/layout/boot-error";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { TextField } from "@/components/ui/text-field";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const loginSchema = z.object({
   email: z.email("Enter a valid email address"),
@@ -22,9 +26,34 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const { colors, fonts } = useTheme();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
   const [rootError, setRootError] = useState<string | null>(null);
+
+  const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: googleClientId,
+    scopes: ["openid", "profile", "email"],
+  });
+
+  useEffect(() => {
+    if (!response) return;
+    if (response.type === "success") {
+      const idToken =
+        (response.params?.id_token as string | undefined) ??
+        response.authentication?.idToken;
+      if (idToken) {
+        setTimeout(() => setRootError(null), 0);
+        void signInWithGoogle(idToken).catch((error) => {
+          setRootError(error instanceof Error ? error.message : "Google sign-in failed.");
+        });
+      } else {
+        setTimeout(() => setRootError("Google did not return an ID token."), 0);
+      }
+    } else if (response.type === "error") {
+      setTimeout(() => setRootError(response.error?.message ?? "Google sign-in failed."), 0);
+    }
+  }, [response, signInWithGoogle]);
 
   const {
     control,
@@ -126,6 +155,16 @@ export default function LoginScreen() {
         icon={<ArrowRight size={17} color={colors.primaryForeground} />}
         style={styles.submit}
       />
+
+      {googleClientId ? (
+        <Button
+          label="Continue with Google"
+          variant="secondary"
+          onPress={() => void promptAsync()}
+          disabled={!request}
+          fullWidth
+        />
+      ) : null}
 
       <View style={styles.switchRow}>
         <Text variant="bodySmall">New to Velora?</Text>

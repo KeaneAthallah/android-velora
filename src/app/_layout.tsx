@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { Providers } from "@/providers";
 import { useTheme, useThemeReady } from "@/theme";
 import { useAuth } from "@/providers/auth-provider";
+import { OfflineBanner } from "@/components/layout/offline-banner";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* the splash may already be hidden in a fast refresh */
@@ -38,6 +39,7 @@ function RootNavigator() {
   return (
     <>
       <StatusBar style={isDark ? "light" : "dark"} />
+      {authenticated ? <OfflineBanner /> : null}
       <Stack
         screenOptions={{
           headerShown: false,
@@ -48,6 +50,46 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen
             name="products/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="checkout"
+            options={{ animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="receipt/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="order/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="order/checkout"
+            options={{ animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="inventory"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="kitchen"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="customers"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="purchasing"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="shifts"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="reports"
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen

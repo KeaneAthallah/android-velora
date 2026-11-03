@@ -5,7 +5,7 @@ export const queryKeys = {
   categories: (businessId: string | null) => ["categories", businessId] as const,
   products: (
     businessId: string | null,
-    filters: { search: string; categoryId: string | null },
+    filters: { search: string; categoryId: string | null; activeOnly?: boolean },
   ) => ["products", businessId, filters] as const,
   productCount: (businessId: string | null) =>
     ["products", "count", businessId] as const,
@@ -19,4 +19,13 @@ export const queryKeys = {
     ["reports", "low-stock", businessId, outletId] as const,
   recentSales: (businessId: string | null, outletId: string | null) =>
     ["sales", "recent", businessId, outletId] as const,
+  paymentMethods: (businessId: string | null) =>
+    ["payment-methods", businessId] as const,
+  cartPreview: (
+    businessId: string | null,
+    outletId: string | null,
+    signature: string,
+  ) => ["pos", "preview", businessId, outletId, signature] as const,
+  receipt: (businessId: string | null, saleId: string) =>
+    ["sales", "receipt", businessId, saleId] as const,
 };
