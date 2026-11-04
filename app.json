@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.velora.app",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#F4F3F8",
         "foregroundImage": "./assets/brand/adaptive-icon.png"
