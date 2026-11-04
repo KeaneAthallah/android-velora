@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
@@ -31,29 +31,22 @@ export default function LoginScreen() {
   const [rootError, setRootError] = useState<string | null>(null);
 
   const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: googleClientId,
-    scopes: ["openid", "profile", "email"],
-  });
 
-  useEffect(() => {
-    if (!response) return;
-    if (response.type === "success") {
-      const idToken =
-        (response.params?.id_token as string | undefined) ??
-        response.authentication?.idToken;
-      if (idToken) {
-        setTimeout(() => setRootError(null), 0);
-        void signInWithGoogle(idToken).catch((error) => {
-          setRootError(error instanceof Error ? error.message : "Google sign-in failed.");
-        });
-      } else {
-        setTimeout(() => setRootError("Google did not return an ID token."), 0);
-      }
-    } else if (response.type === "error") {
-      setTimeout(() => setRootError(response.error?.message ?? "Google sign-in failed."), 0);
-    }
-  }, [response, signInWithGoogle]);
+  const handleGoogleIdToken = useCallback(
+    (idToken: string) => {
+      setRootError(null);
+      void signInWithGoogle(idToken).catch((error) => {
+        setRootError(
+          error instanceof Error ? error.message : "Google sign-in failed.",
+        );
+      });
+    },
+    [signInWithGoogle],
+  );
+
+  const handleGoogleError = useCallback((message: string) => {
+    setRootError(message);
+  }, []);
 
   const {
     control,
@@ -157,12 +150,10 @@ export default function LoginScreen() {
       />
 
       {googleClientId ? (
-        <Button
-          label="Continue with Google"
-          variant="secondary"
-          onPress={() => void promptAsync()}
-          disabled={!request}
-          fullWidth
+        <GoogleSignInButton
+          clientId={googleClientId}
+          onIdToken={handleGoogleIdToken}
+          onError={handleGoogleError}
         />
       ) : null}
 
@@ -190,6 +181,56 @@ export default function LoginScreen() {
         </Text>
       ) : null}
     </AuthShell>
+  );
+}
+
+/**
+ * Google sign-in is optional. `Google.useAuthRequest` throws during render when
+ * no client ID resolves for the platform, which used to take the whole screen —
+ * and the app — down on builds that have no OAuth keys. Mounting it only when
+ * an ID exists keeps the button available where it is configured and absent
+ * everywhere else.
+ */
+function GoogleSignInButton({
+  clientId,
+  onIdToken,
+  onError,
+}: {
+  clientId: string;
+  onIdToken: (idToken: string) => void;
+  onError: (message: string) => void;
+}) {
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    scopes: ["openid", "profile", "email"],
+  });
+
+  useEffect(() => {
+    if (!response) return;
+    if (response.type === "success") {
+      const idToken =
+        (response.params?.id_token as string | undefined) ??
+        response.authentication?.idToken;
+      if (idToken) {
+        onIdToken(idToken);
+      } else {
+        onError("Google did not return an ID token.");
+      }
+    } else if (response.type === "error") {
+      onError(response.error?.message ?? "Google sign-in failed.");
+    }
+  }, [response, onIdToken, onError]);
+
+  return (
+    <Button
+      label="Continue with Google"
+      variant="secondary"
+      onPress={() => void promptAsync()}
+      disabled={!request}
+      fullWidth
+    />
   );
 }
 
