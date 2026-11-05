@@ -130,6 +130,7 @@ export function Button({
           color: isDisabled ? palette.disabledFg : palette.foreground,
         }}
         numberOfLines={1}
+        maxFontSizeMultiplier={1.2}
       >
         {label}
       </Text>

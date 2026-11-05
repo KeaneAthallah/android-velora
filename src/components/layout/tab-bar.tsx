@@ -94,6 +94,7 @@ export function TabBar({ state, descriptors, navigateToTab, insets }: BottomTabB
 
               <Text
                 numberOfLines={1}
+                maxFontSizeMultiplier={1.2}
                 style={{
                   fontSize: 10.5,
                   lineHeight: 13,
