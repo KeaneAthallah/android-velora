@@ -73,6 +73,50 @@ function RootNavigator() {
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen
+            name="transactions"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="menu"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="tables"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="suppliers"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="promotions"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="stock-transfers"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="stocktakes"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="recipes"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="team"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="channels"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="subscription"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
             name="kitchen"
             options={{ animation: "slide_from_right" }}
           />

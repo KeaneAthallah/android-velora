@@ -121,6 +121,33 @@ export async function fetchRecentSales({
   return page.data.slice(0, limit).map(mapSale);
 }
 
+export type SaleListFilters = {
+  page?: number;
+  search?: string;
+  /** `completed | voided | refunded | …` — omitted, the API hides draft tabs. */
+  status?: string | null;
+  outletId?: string | null;
+};
+
+/**
+ * `GET /sales` — needs `sales.view`. The ledger endpoint: open tabs are
+ * excluded unless a status is asked for, and a page holds at most 50 rows.
+ */
+export async function fetchSalesPage(
+  filters: SaleListFilters = {},
+): Promise<Paginated<Sale>> {
+  const page = await apiRequest<Paginated<RawSale>>("/sales", {
+    params: {
+      page: filters.page ?? 1,
+      outlet_id: filters.outletId ? Number(filters.outletId) : undefined,
+      status: filters.status ?? undefined,
+      q: filters.search?.trim() || undefined,
+    },
+  });
+
+  return { ...page, data: page.data.map(mapSale) };
+}
+
 /** `GET /sales/{id}` — needs `sales.view`. */
 export async function fetchSale(id: string): Promise<Sale> {
   const raw = await apiRequest<RawSale>(`/sales/${encodeURIComponent(id)}`);

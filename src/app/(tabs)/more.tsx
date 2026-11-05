@@ -3,21 +3,30 @@ import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import Constants from "expo-constants";
 import {
+  ArrowLeftRight,
   BarChart3,
+  Boxes,
   Building2,
+  ChefHat,
   ClipboardList,
   CreditCard,
+  LayoutGrid,
   LogOut,
   Package,
+  Plug,
+  ReceiptText,
   Settings,
   ShieldCheck,
   ShoppingBag,
   Store,
+  Tag,
   Truck,
   Users,
+  UtensilsCrossed,
   Wallet,
 } from "lucide-react-native";
 import type { LucideIcon } from "lucide-react-native";
+import type { Href } from "expo-router";
 import { useTheme } from "@/theme";
 import { useAuth, usePermissions } from "@/providers/auth-provider";
 import { useTenant } from "@/providers/tenant-provider";
@@ -33,16 +42,194 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Text } from "@/components/ui/text";
 import { TenantSwitcher } from "@/components/tenant/tenant-switcher";
 
-type UpcomingModule = {
+type ModuleLink = {
   key: string;
   label: string;
   subtitle: string;
   icon: LucideIcon;
-  permission: string;
-  phase: string;
+  /** Omitted modules are always visible (Settings). */
+  permission?: string;
+  href: Href;
 };
 
-const UPCOMING: UpcomingModule[] = [];
+/** Mirrors the web sidebar's sections so the two apps read the same. */
+const MODULE_GROUPS: { title: string; modules: ModuleLink[] }[] = [
+  {
+    title: "Operate",
+    modules: [
+      {
+        key: "transactions",
+        label: "Transactions",
+        subtitle: "Receipts, totals and voids",
+        icon: ReceiptText,
+        permission: "sales.view",
+        href: "/transactions",
+      },
+      {
+        key: "tables",
+        label: "Floor plan",
+        subtitle: "Tables, areas and open tabs",
+        icon: LayoutGrid,
+        permission: "tables.view",
+        href: "/tables",
+      },
+      {
+        key: "kitchen",
+        label: "Kitchen",
+        subtitle: "Tickets and preparation",
+        icon: ShoppingBag,
+        permission: "kitchen.view",
+        href: "/kitchen",
+      },
+      {
+        key: "channels",
+        label: "Channels",
+        subtitle: "Marketplace and online orders",
+        icon: Plug,
+        permission: "channels.view",
+        href: "/channels",
+      },
+      {
+        key: "shifts",
+        label: "Shifts",
+        subtitle: "Registers and cash",
+        icon: Wallet,
+        permission: "shifts.view",
+        href: "/shifts",
+      },
+    ],
+  },
+  {
+    title: "Catalog & stock",
+    modules: [
+      {
+        key: "products",
+        label: "Products",
+        subtitle: "Catalogue, search and details",
+        icon: Package,
+        permission: "products.view",
+        href: "/products",
+      },
+      {
+        key: "menu",
+        label: "Menu",
+        subtitle: "Availability and the 86 board",
+        icon: UtensilsCrossed,
+        permission: "menu.view",
+        href: "/menu",
+      },
+      {
+        key: "stock-transfers",
+        label: "Stock transfers",
+        subtitle: "Draft then complete between outlets",
+        icon: ArrowLeftRight,
+        permission: "inventory.view",
+        href: "/stock-transfers",
+      },
+      {
+        key: "inventory",
+        label: "Inventory",
+        subtitle: "Balances and adjustments",
+        icon: Boxes,
+        permission: "inventory.view",
+        href: "/inventory",
+      },
+      {
+        key: "stocktakes",
+        label: "Stocktakes",
+        subtitle: "Count stock and post variances",
+        icon: ClipboardList,
+        permission: "inventory.view",
+        href: "/stocktakes",
+      },
+      {
+        key: "recipes",
+        label: "Recipes",
+        subtitle: "Ingredient costing and yield",
+        icon: ChefHat,
+        permission: "recipes.view",
+        href: "/recipes",
+      },
+      {
+        key: "purchasing",
+        label: "Purchasing",
+        subtitle: "Purchase orders",
+        icon: Truck,
+        permission: "purchasing.view",
+        href: "/purchasing",
+      },
+      {
+        key: "suppliers",
+        label: "Suppliers",
+        subtitle: "Supply contacts and terms",
+        icon: Truck,
+        permission: "suppliers.view",
+        href: "/suppliers",
+      },
+    ],
+  },
+  {
+    title: "Relationships",
+    modules: [
+      {
+        key: "customers",
+        label: "Customers",
+        subtitle: "Directory and profiles",
+        icon: Users,
+        permission: "customers.view",
+        href: "/customers",
+      },
+      {
+        key: "promotions",
+        label: "Promotions",
+        subtitle: "Discount codes and offers",
+        icon: Tag,
+        permission: "promotions.view",
+        href: "/promotions",
+      },
+    ],
+  },
+  {
+    title: "Analyze",
+    modules: [
+      {
+        key: "reports",
+        label: "Reports",
+        subtitle: "Sales and stock",
+        icon: BarChart3,
+        permission: "reports.view",
+        href: "/reports",
+      },
+    ],
+  },
+  {
+    title: "Manage",
+    modules: [
+      {
+        key: "team",
+        label: "Team",
+        subtitle: "Members, roles and access",
+        icon: Users,
+        permission: "employees.view",
+        href: "/team",
+      },
+      {
+        key: "settings",
+        label: "Settings",
+        subtitle: "Account, appearance and workspace",
+        icon: Settings,
+        href: "/settings",
+      },
+      {
+        key: "subscription",
+        label: "Subscription",
+        subtitle: "Plan, usage limits and features",
+        icon: CreditCard,
+        href: "/subscription",
+      },
+    ],
+  },
+];
 
 export default function MoreScreen() {
   const { colors } = useTheme();
@@ -55,8 +242,6 @@ export default function MoreScreen() {
 
   const user = session?.user;
   const subscription = session?.subscription;
-
-  const upcoming = UPCOMING.filter((module) => has(module.permission));
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -169,137 +354,31 @@ export default function MoreScreen() {
           </View>
         ) : null}
 
-        <View>
-          <SectionHeader title="Modules" />
-          <Card style={styles.groupCard}>
-            {has("products.view") ? (
-              <>
-                <ListRow
-                  icon={Package}
-                  title="Products"
-                  subtitle="Catalogue, search and details"
-                  onPress={() => router.navigate("/products")}
-                />
-                <Divider />
-              </>
-            ) : null}
+        {MODULE_GROUPS.map((group) => {
+          const modules = group.modules.filter(
+            (module) => !module.permission || has(module.permission),
+          );
+          if (modules.length === 0) return null;
 
-            {has("orders.view") ? (
-              <>
-                <ListRow
-                  icon={ClipboardList}
-                  title="Orders"
-                  subtitle="Open tabs, status and kitchen flow"
-                  onPress={() => router.navigate("/orders")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            {has("inventory.view") ? (
-              <>
-                <ListRow
-                  icon={Package}
-                  title="Inventory"
-                  subtitle="Balances and adjustments"
-                  onPress={() => router.push("/inventory")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            {has("kitchen.view") ? (
-              <>
-                <ListRow
-                  icon={ShoppingBag}
-                  title="Kitchen"
-                  subtitle="Tickets and preparation"
-                  onPress={() => router.push("/kitchen")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            {has("customers.view") ? (
-              <>
-                <ListRow
-                  icon={Users}
-                  title="Customers"
-                  subtitle="Directory and profiles"
-                  onPress={() => router.push("/customers")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            {has("purchasing.view") ? (
-              <>
-                <ListRow
-                  icon={Truck}
-                  title="Purchasing"
-                  subtitle="Purchase orders"
-                  onPress={() => router.push("/purchasing")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            {has("shifts.view") ? (
-              <>
-                <ListRow
-                  icon={Wallet}
-                  title="Shifts"
-                  subtitle="Registers and cash"
-                  onPress={() => router.push("/shifts")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            {has("reports.view") ? (
-              <>
-                <ListRow
-                  icon={BarChart3}
-                  title="Reports"
-                  subtitle="Sales and stock"
-                  onPress={() => router.push("/reports")}
-                />
-                <Divider />
-              </>
-            ) : null}
-
-            <ListRow
-              icon={Settings}
-              title="Settings"
-              subtitle="Account, appearance and workspace"
-              onPress={() => router.push("/settings")}
-            />
-          </Card>
-        </View>
-
-        {upcoming.length > 0 ? (
-          <View>
-            <SectionHeader title="Coming next" />
-            <Card style={styles.groupCard}>
-              {upcoming.map((module, index) => (
-                <View key={module.key}>
-                  {index > 0 ? <Divider /> : null}
-                  <ListRow
-                    icon={module.icon}
-                    title={module.label}
-                    subtitle={module.subtitle}
-                    right={<Badge label={module.phase} tone="neutral" />}
-                    disabled
-                  />
-                </View>
-              ))}
-            </Card>
-            <Text variant="caption" style={styles.comingNote}>
-              These modules are not implemented yet — they are listed so the
-              roadmap is visible, and they do not open a screen.
-            </Text>
-          </View>
-        ) : null}
+          return (
+            <View key={group.title}>
+              <SectionHeader title={group.title} />
+              <Card style={styles.groupCard}>
+                {modules.map((module, index) => (
+                  <View key={module.key}>
+                    {index > 0 ? <Divider /> : null}
+                    <ListRow
+                      icon={module.icon}
+                      title={module.label}
+                      subtitle={module.subtitle}
+                      onPress={() => router.push(module.href)}
+                    />
+                  </View>
+                ))}
+              </Card>
+            </View>
+          );
+        })}
 
         <View>
           <SectionHeader title="Account" />
@@ -408,9 +487,5 @@ const styles = StyleSheet.create({
   },
   planNoteText: {
     flex: 1,
-  },
-  comingNote: {
-    marginTop: 6,
-    marginHorizontal: 2,
   },
 });
