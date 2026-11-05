@@ -101,6 +101,7 @@ export function ConfirmDialog({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}
+              accessibilityState={{ disabled: loading }}
               disabled={loading}
               onPress={onCancel}
               style={({ pressed }) => [
