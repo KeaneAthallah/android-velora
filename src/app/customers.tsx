@@ -133,7 +133,9 @@ export default function CustomersScreen() {
         <View style={styles.form}>
           <TextField label="Name" value={name} onChangeText={setName} />
           <TextField label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-          <TextField label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
+          <TextField label="Email" value={email} onChangeText={setEmail} keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false} />
           <TextField label="Address" value={address} onChangeText={setAddress} multiline />
           {error ? <Text variant="caption" color={colors.danger}>{error}</Text> : null}
           <Button label={createMutation.isPending ? "Saving…" : "Create"} onPress={() => void submitCreate()} loading={createMutation.isPending} disabled={createMutation.isPending} fullWidth />

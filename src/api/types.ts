@@ -7,6 +7,16 @@
 
 export type Permission = string;
 
+export type Workspace = {
+  industry: string;
+  industryLabel: string;
+  modules: Record<string, boolean>;
+  features: Record<string, boolean>;
+  limits: Record<string, number | null>;
+  terminology: Record<string, string>;
+  defaultRoute: string;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -21,6 +31,7 @@ export type Business = {
   slug: string;
   currency: string;
   timezone: string;
+  industry?: string;
   roleSlug: string;
   roleName: string;
   permissions: Permission[];

@@ -31,6 +31,7 @@ type RawBusiness = {
   slug: string;
   currency: string | null;
   timezone: string | null;
+  industry?: string | null;
 };
 
 type RawMembership = {
@@ -113,6 +114,7 @@ function mapBusiness(membership: RawMembership): Business {
     slug: raw?.slug ?? String(membership.business_id),
     currency: raw?.currency ?? "USD",
     timezone: raw?.timezone ?? "UTC",
+    industry: raw?.industry ?? undefined,
     roleSlug: role?.slug ?? "member",
     roleName: role?.name ?? "Member",
     permissions: isOwner && !permissions.includes("*") ? ["*", ...permissions] : permissions,

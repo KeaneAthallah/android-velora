@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { View, type DimensionValue, type StyleProp, type ViewStyle } from "react-native";
+import { AccessibilityInfo } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -17,23 +18,47 @@ type SkeletonProps = {
 
 export function Skeleton({ width = "100%", height = 16, radius = 8, style }: SkeletonProps) {
   const { colors } = useTheme();
-  const opacity = useSharedValue(0.45);
+  const opacity = useSharedValue(0.55);
+  const [reduceMotion, setReduceMotion] = React.useState(false);
 
   useEffect(() => {
-    opacity.value = withRepeat(withTiming(1, { duration: 900 }), -1, true);
-  }, [opacity]);
+    let mounted = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) setReduceMotion(enabled);
+    });
+    const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    return () => {
+      mounted = false;
+      sub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      opacity.value = 0.7;
+      return;
+    }
+    opacity.value = 0.55;
+    opacity.value = withRepeat(withTiming(0.9, { duration: 700 }), -1, true);
+  }, [opacity, reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  if (reduceMotion) {
+    return (
+      <View
+        style={[
+          { width, height, borderRadius: radius, backgroundColor: colors.surfaceStrong, opacity: 0.7 },
+          style,
+        ]}
+      />
+    );
+  }
 
   return (
     <Animated.View
       style={[
-        {
-          width,
-          height,
-          borderRadius: radius,
-          backgroundColor: colors.surfaceStrong,
-        },
+        { width, height, borderRadius: radius, backgroundColor: colors.surfaceStrong },
         animatedStyle,
         style,
       ]}

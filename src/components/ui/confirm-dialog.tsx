@@ -49,9 +49,9 @@ export function ConfirmDialog({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Dismiss"
-          disabled={loading}
+          disabled={loading || tone === "danger"}
           style={[styles.backdrop, { backgroundColor: colors.overlay }]}
-          onPress={onCancel}
+          onPress={tone === "danger" ? undefined : onCancel}
         />
 
         <View

@@ -10,6 +10,7 @@ import {
 } from "lucide-react-native";
 import { radii, shadows, spacing, useTheme } from "@/theme";
 import { Text } from "@/components/ui/text";
+import * as Haptics from "expo-haptics";
 
 const ICONS: Record<string, LucideIcon> = {
   index: Home,
@@ -68,9 +69,15 @@ export function TabBar({ state, descriptors, navigateToTab, insets }: BottomTabB
               accessibilityLabel={label}
               accessibilityState={{ selected: focused }}
               onPress={() => {
-                if (!focused) navigateToTab(route.key);
+                if (!focused) {
+                  void Haptics.selectionAsync();
+                  navigateToTab(route.key);
+                }
               }}
-              style={styles.tab}
+              style={({ pressed }) => [
+                styles.tab,
+                pressed ? { opacity: 0.7 } : null,
+              ]}
             >
               <View
                 style={[

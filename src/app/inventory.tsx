@@ -169,7 +169,7 @@ export default function InventoryScreen() {
             label="Quantity change"
             value={quantity}
             onChangeText={setQuantity}
-            keyboardType="numeric"
+            keyboardType="numbers-and-punctuation"
             placeholder="e.g. 5 or -2"
             helper="Positive adds stock, negative removes. The server records the movement."
           />

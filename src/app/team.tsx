@@ -256,6 +256,7 @@ export default function TeamScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
             placeholder="teammate@company.com"
           />
 

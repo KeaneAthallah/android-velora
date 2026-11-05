@@ -20,7 +20,7 @@ export function Sheet({ visible, onClose, title, description, children }: SheetP
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="slide"
       statusBarTranslucent
       onRequestClose={onClose}
     >

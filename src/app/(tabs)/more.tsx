@@ -18,6 +18,7 @@ import {
   Settings,
   ShieldCheck,
   ShoppingBag,
+  ShoppingCart,
   Store,
   Tag,
   Truck,
@@ -30,6 +31,8 @@ import type { Href } from "expo-router";
 import { useTheme } from "@/theme";
 import { useAuth, usePermissions } from "@/providers/auth-provider";
 import { useTenant } from "@/providers/tenant-provider";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWorkspace } from "@/api/endpoints/workspace";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen, ScreenScroll } from "@/components/ui/screen";
 import { Avatar } from "@/components/ui/avatar";
@@ -154,7 +157,7 @@ const MODULE_GROUPS: { title: string; modules: ModuleLink[] }[] = [
         key: "purchasing",
         label: "Purchasing",
         subtitle: "Purchase orders",
-        icon: Truck,
+        icon: ShoppingCart,
         permission: "purchasing.view",
         href: "/purchasing",
       },
@@ -236,6 +239,12 @@ export default function MoreScreen() {
   const { session, signOut } = useAuth();
   const { has } = usePermissions();
   const { business, outlet, outlets } = useTenant();
+  const { data: workspace } = useQuery({
+    queryKey: ["workspace", business?.id],
+    queryFn: fetchWorkspace,
+    enabled: !!business?.id,
+    staleTime: 5 * 60_000,
+  });
 
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -355,9 +364,12 @@ export default function MoreScreen() {
         ) : null}
 
         {MODULE_GROUPS.map((group) => {
-          const modules = group.modules.filter(
-            (module) => !module.permission || has(module.permission),
-          );
+          const modules = group.modules.filter((module) => {
+            if (module.permission && !has(module.permission)) return false;
+            const modKey = module.key.replace(/-/g, "_");
+            if (workspace?.modules && workspace.modules[modKey] === false) return false;
+            return true;
+          });
           if (modules.length === 0) return null;
 
           return (

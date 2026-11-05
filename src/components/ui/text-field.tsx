@@ -95,6 +95,7 @@ export const TextField = forwardRef<ComponentRef<typeof RNTextInput>, TextFieldP
               setFocused(false);
               onBlur?.(event);
             }}
+            accessibilityLabel={inputProps.accessibilityLabel ?? label ?? undefined}
             {...inputProps}
           />
 
@@ -118,7 +119,7 @@ export const TextField = forwardRef<ComponentRef<typeof RNTextInput>, TextFieldP
         </View>
 
         {error ? (
-          <Text variant="caption" color={colors.danger} style={styles.helper}>
+          <Text variant="caption" color={colors.danger} style={styles.helper} accessibilityLiveRegion="polite">
             {error}
           </Text>
         ) : helper ? (

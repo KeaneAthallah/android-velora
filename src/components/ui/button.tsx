@@ -77,7 +77,7 @@ export function Button({
   }[variant];
 
   const metrics = {
-    sm: { height: 38, paddingHorizontal: 14, fontSize: 13 },
+    sm: { height: 44, paddingHorizontal: 14, fontSize: 13 },
     md: { height: 48, paddingHorizontal: 18, fontSize: 15 },
     lg: { height: 56, paddingHorizontal: 22, fontSize: 16 },
   }[size];
@@ -89,7 +89,17 @@ export function Button({
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
       onPress={onPress}
-      android_ripple={{ color: colors.overlay, borderless: false }}
+      android_ripple={
+        variant === "ghost"
+          ? undefined
+          : {
+              color:
+                variant === "primary" || variant === "danger"
+                  ? "rgba(255,255,255,0.18)"
+                  : "rgba(0,0,0,0.06)",
+              borderless: false,
+            }
+      }
       style={({ pressed }) => [
         styles.base,
         {
@@ -99,7 +109,7 @@ export function Button({
           borderColor: palette.border,
           borderWidth: palette.border === "transparent" ? 0 : 1,
           borderRadius: radii.md,
-          opacity: pressed && !isDisabled ? 0.92 : 1,
+           opacity: 1,
         },
         fullWidth ? styles.fullWidth : null,
         style,
