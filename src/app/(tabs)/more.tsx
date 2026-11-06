@@ -5,6 +5,7 @@ import Constants from "expo-constants";
 import {
   ArrowLeftRight,
   BarChart3,
+  Bell,
   Boxes,
   Building2,
   ChefHat,
@@ -91,6 +92,14 @@ const MODULE_GROUPS: { title: string; modules: ModuleLink[] }[] = [
         icon: Plug,
         permission: "channels.view",
         href: "/channels",
+      },
+      {
+        key: "deliveries",
+        label: "Deliveries",
+        subtitle: "Dispatch board and status",
+        icon: Truck,
+        permission: "deliveries.view",
+        href: "/deliveries" as Href,
       },
       {
         key: "shifts",
@@ -215,6 +224,13 @@ const MODULE_GROUPS: { title: string; modules: ModuleLink[] }[] = [
         icon: Users,
         permission: "employees.view",
         href: "/team",
+      },
+      {
+        key: "notifications",
+        label: "Notifications",
+        subtitle: "Sales, stock and support updates",
+        icon: Bell,
+        href: "/notifications" as Href,
       },
       {
         key: "settings",

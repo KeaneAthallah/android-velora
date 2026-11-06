@@ -93,6 +93,14 @@ function RootNavigator() {
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen
+            name="deliveries"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="notifications"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
             name="stock-transfers"
             options={{ animation: "slide_from_right" }}
           />
