@@ -141,6 +141,10 @@ function RootNavigator() {
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen
+            name="workspace-setup"
+            options={{ animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
             name="subscription"
             options={{ animation: "slide_from_right" }}
           />
@@ -154,6 +158,10 @@ function RootNavigator() {
           />
           <Stack.Screen
             name="purchasing"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="reorder"
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen

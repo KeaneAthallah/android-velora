@@ -14,15 +14,18 @@ type EmptyWorkspaceProps = {
   hint: string;
   onRefresh?: () => void;
   refreshing?: boolean;
+  /** Opens the in-app setup flow (create business and/or first outlet). */
+  onSetup?: () => void;
+  setupLabel?: string;
   onSignOut: () => void;
   signingOut?: boolean;
 };
 
 /**
  * Shown when an authenticated account cannot use the tabs yet: no business
- * membership, or a business that has no outlets. The mobile app does not
- * create workspaces (that stays in the web onboarding flow), but it offers a
- * real refresh and a real sign out instead of a dead end.
+ * membership, or a business that has no outlets. Both cases are fixable in the
+ * app through `onSetup`; refresh and sign out are offered as well so the screen
+ * is never a dead end.
  */
 export function EmptyWorkspace({
   icon: Icon,
@@ -31,6 +34,8 @@ export function EmptyWorkspace({
   hint,
   onRefresh,
   refreshing = false,
+  onSetup,
+  setupLabel = "Set up workspace",
   onSignOut,
   signingOut = false,
 }: EmptyWorkspaceProps) {
@@ -71,6 +76,9 @@ export function EmptyWorkspace({
         </Text>
 
         <View style={styles.actions}>
+          {onSetup ? (
+            <Button label={setupLabel} onPress={onSetup} fullWidth />
+          ) : null}
           {onRefresh ? (
             <Button
               label="Refresh"

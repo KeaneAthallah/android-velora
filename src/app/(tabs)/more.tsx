@@ -17,6 +17,7 @@ import {
   LayoutGrid,
   LogOut,
   Package,
+  PackageSearch,
   Plug,
   ReceiptText,
   Settings,
@@ -180,6 +181,14 @@ const MODULE_GROUPS: { title: string; modules: ModuleLink[] }[] = [
         icon: ShoppingCart,
         permission: "purchasing.view",
         href: "/purchasing",
+      },
+      {
+        key: "reorder",
+        label: "Reorder copilot",
+        subtitle: "Demand forecast and what to buy",
+        icon: PackageSearch,
+        permission: "purchasing.manage",
+        href: "/reorder",
       },
       {
         key: "suppliers",
