@@ -26,6 +26,7 @@ import { useResponsive } from "@/lib/use-responsive";
 import { formatMoney, formatQuantity } from "@/lib/format";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useCategories, useInfiniteProducts } from "@/features/products/use-products";
+import { useRecipeAvailability } from "@/features/recipes/use-recipe-availability";
 import { cartItemCount, useCartStore } from "@/features/pos/cart-store";
 import { useCartPreview, toSaleLines } from "@/features/pos/use-pos";
 import { RegisterProductTile } from "@/features/pos/register-product-tile";
@@ -117,6 +118,15 @@ export default function SalesScreen() {
   const categories = categoriesQuery.data ?? [];
   const itemCount = cartItemCount(lines);
 
+  const availabilityQuery = useRecipeAvailability();
+  const availabilityByProduct = useMemo(() => {
+    const map = new Map<string, { sellable: number | null; unlimited: boolean }>();
+    for (const row of availabilityQuery.data ?? []) {
+      map.set(row.productId, { sellable: row.sellable, unlimited: row.unlimited });
+    }
+    return map;
+  }, [availabilityQuery.data]);
+
   const wide = isTablet && width >= 820;
   const columns = wide ? 3 : gridColumns;
 
@@ -144,13 +154,20 @@ export default function SalesScreen() {
 
   const handleProductPress = useCallback(
     (product: Product) => {
+      // Stop at what the outlet's ingredients can still make; the server would
+      // refuse the sale anyway, this just keeps the cart honest.
+      const availability = availabilityByProduct.get(product.id);
+      if (availability && !availability.unlimited && availability.sellable !== null) {
+        const inCart = inCartByProduct.get(product.id) ?? 0;
+        if (inCart >= availability.sellable) return;
+      }
       if (product.variants.some((variant) => variant.isActive)) {
         setVariantProduct(product);
         return;
       }
       addProduct(product, null);
     },
-    [addProduct],
+    [addProduct, availabilityByProduct, inCartByProduct],
   );
 
   const selectVariant = useCallback(
@@ -358,6 +375,8 @@ export default function SalesScreen() {
                     currency={currency}
                     columns={columns}
                     inCart={inCartByProduct.get(item.product.id) ?? 0}
+                    sellable={availabilityByProduct.get(item.product.id)?.sellable}
+                    unlimited={availabilityByProduct.get(item.product.id)?.unlimited}
                     onPress={handleProductPress}
                   />
                 ) : (

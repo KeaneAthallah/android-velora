@@ -13,16 +13,24 @@ import { useTheme } from "@/theme";
 import { useTenant } from "@/providers/tenant-provider";
 import { useResponsive } from "@/lib/use-responsive";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { useCategories, useInfiniteProducts } from "@/features/products/use-products";
+import {
+  useCategories,
+  useCreateProductMutation,
+  useInfiniteProducts,
+} from "@/features/products/use-products";
 import { ProductCard } from "@/features/products/product-card";
+import { useAuth } from "@/providers/auth-provider";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/ui/screen";
 import { SearchField } from "@/components/ui/search-field";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Sheet } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Text } from "@/components/ui/text";
+import { TextField } from "@/components/ui/text-field";
 import type { Product } from "@/api/types";
 
 type GridCell = { key: string; product: Product | null };
@@ -64,8 +72,21 @@ export default function ProductsScreen() {
   const { business, outlet } = useTenant();
   const { gridColumns, gutter } = useResponsive();
 
+  const { has } = useAuth();
+  const canManage = has("products.manage");
+
   const [searchInput, setSearchInput] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+
+  const createMutation = useCreateProductMutation();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [draftSku, setDraftSku] = useState("");
+  const [draftPrice, setDraftPrice] = useState("");
+  const [draftCost, setDraftCost] = useState("");
+  const [draftUnit, setDraftUnit] = useState("pcs");
+  const [draftCategoryId, setDraftCategoryId] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const search = useDebouncedValue(searchInput.trim(), 300);
   const productsQuery = useInfiniteProducts({ search, categoryId });
@@ -107,9 +128,68 @@ export default function ProductsScreen() {
     setCategoryId(null);
   };
 
+  /**
+   * SKU is required by the API but meaningless to a cashier, so derive one from
+   * the name when it is left blank. A short random tail keeps two "Kopi Susu"
+   * rows from colliding on the unique index.
+   */
+  const deriveSku = (value: string) => {
+    const base = value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 20);
+    const tail = Math.random().toString(36).slice(2, 5).toUpperCase();
+    return `${base || "ITEM"}-${tail}`;
+  };
+
+  const submitCreate = async () => {
+    if (draftName.trim().length < 2) {
+      setCreateError("Product name is required.");
+      return;
+    }
+
+    setCreateError(null);
+    try {
+      await createMutation.mutateAsync({
+        name: draftName.trim(),
+        sku: draftSku.trim() || deriveSku(draftName.trim()),
+        sellingPrice: draftPrice.trim() || "0",
+        costPrice: draftCost.trim() || undefined,
+        unit: draftUnit.trim() || undefined,
+        categoryId: draftCategoryId,
+      });
+      setCreateOpen(false);
+      setDraftName("");
+      setDraftSku("");
+      setDraftPrice("");
+      setDraftCost("");
+      setDraftUnit("pcs");
+      setDraftCategoryId(null);
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : "Could not create the product.");
+    }
+  };
+
   return (
     <Screen>
-      <AppHeader title="Products" subtitle={subtitle} showAvatar />
+      <AppHeader
+        title="Products"
+        subtitle={subtitle}
+        showAvatar
+        right={
+          canManage ? (
+            <Button
+              label="New"
+              size="sm"
+              onPress={() => {
+                setCreateError(null);
+                setCreateOpen(true);
+              }}
+            />
+          ) : undefined
+        }
+      />
 
       <View style={styles.controls}>
         <SearchField
@@ -202,10 +282,21 @@ export default function ProductsScreen() {
             description={
               filtered
                 ? "Try a different search term or category."
-                : "Add products in the Velora web app and they will appear here."
+                : "Add your first product to start selling it on the register."
             }
-            actionLabel={filtered ? "Clear filters" : undefined}
-            onAction={filtered ? clearFilters : undefined}
+            actionLabel={
+              filtered ? "Clear filters" : canManage ? "Add product" : undefined
+            }
+            onAction={
+              filtered
+                ? clearFilters
+                : canManage
+                  ? () => {
+                      setCreateError(null);
+                      setCreateOpen(true);
+                    }
+                  : undefined
+            }
           />
         </View>
       ) : (
@@ -253,6 +344,111 @@ export default function ProductsScreen() {
           }
         />
       )}
+
+      <Sheet
+        visible={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="New product"
+        description="Selling price is what the register charges."
+      >
+        <View style={styles.form}>
+          <TextField
+            label="Name"
+            value={draftName}
+            onChangeText={setDraftName}
+            placeholder="Kopi Susu Gula Aren"
+          />
+          <TextField
+            label="SKU"
+            value={draftSku}
+            onChangeText={setDraftSku}
+            placeholder="Auto-generated if left blank"
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
+          <TextField
+            label={`Selling price (${currency})`}
+            value={draftPrice}
+            onChangeText={setDraftPrice}
+            placeholder="22000"
+            keyboardType="numeric"
+          />
+          <TextField
+            label={`Cost price (${currency})`}
+            value={draftCost}
+            onChangeText={setDraftCost}
+            placeholder="9000"
+            keyboardType="numeric"
+          />
+          <TextField
+            label="Unit"
+            value={draftUnit}
+            onChangeText={setDraftUnit}
+            placeholder="pcs"
+            autoCapitalize="none"
+          />
+
+          {categories.length > 0 ? (
+            <View style={styles.formChips}>
+              <Text variant="label">Category</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.chips}
+              >
+                {categories.map((category) => {
+                  const active = draftCategoryId === category.id;
+                  return (
+                    <Pressable
+                      key={category.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Category ${category.name}`}
+                      accessibilityState={{ selected: active }}
+                      onPress={() =>
+                        setDraftCategoryId(active ? null : category.id)
+                      }
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: active
+                            ? colors.primary
+                            : colors.surfaceMuted,
+                          borderColor: active ? colors.primary : colors.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        variant="bodySmall"
+                        color={
+                          active ? colors.primaryForeground : colors.inkSecondary
+                        }
+                        numberOfLines={1}
+                      >
+                        {category.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          ) : null}
+
+          {createError ? (
+            <Text variant="caption" color={colors.danger}>
+              {createError}
+            </Text>
+          ) : null}
+
+          <Button
+            label={createMutation.isPending ? "Saving…" : "Create product"}
+            onPress={() => void submitCreate()}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending}
+            fullWidth
+          />
+        </View>
+      </Sheet>
     </Screen>
   );
 }
@@ -307,5 +503,12 @@ const styles = StyleSheet.create({
   },
   footerSpace: {
     height: 12,
+  },
+  form: {
+    gap: 12,
+    paddingBottom: 8,
+  },
+  formChips: {
+    gap: 8,
   },
 });

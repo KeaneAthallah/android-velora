@@ -157,6 +157,34 @@ export async function fetchProductByBarcode(
   return products.find(matches) ?? null;
 }
 
+export type CreateProductInput = {
+  name: string;
+  sku: string;
+  sellingPrice?: string;
+  costPrice?: string;
+  unit?: string;
+  categoryId?: string | null;
+};
+
+/** Create a product (`POST /products`, needs `products.manage`). */
+export async function createProduct(
+  input: CreateProductInput,
+): Promise<Product> {
+  const raw = await apiRequest<RawProduct>("/products", {
+    method: "POST",
+    body: {
+      name: input.name,
+      sku: input.sku,
+      selling_price: input.sellingPrice || undefined,
+      cost_price: input.costPrice || undefined,
+      unit: input.unit || undefined,
+      category_id: input.categoryId ? Number(input.categoryId) : undefined,
+    },
+  });
+
+  return mapProduct(raw);
+}
+
 export async function fetchCategories(): Promise<ProductCategory[]> {
   const page = await apiRequest<Paginated<RawCategory>>("/categories", {
     params: { per_page: 100 },

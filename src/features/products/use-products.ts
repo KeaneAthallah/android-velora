@@ -1,6 +1,12 @@
 import { useEffect } from "react";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  createProduct,
   fetchCategories,
   fetchProduct,
   fetchProducts,
@@ -41,6 +47,17 @@ export function useInfiniteProducts({
         ? lastPage.current_page + 1
         : undefined,
     enabled: Boolean(businessId) && has("products.view"),
+  });
+}
+
+export function useCreateProductMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createProduct,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 

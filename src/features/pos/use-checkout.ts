@@ -124,6 +124,10 @@ export function useCheckout() {
         queryClient.invalidateQueries({ queryKey: ["sales"] }),
         queryClient.invalidateQueries({ queryKey: ["reports"] }),
         queryClient.invalidateQueries({ queryKey: ["products"] }),
+        // Ingredients were deducted, so both the recipes and the ingredient
+        // dashboard are stale.
+        queryClient.invalidateQueries({ queryKey: ["recipes"] }),
+        queryClient.invalidateQueries({ queryKey: ["ingredients"] }),
       ]);
 
       return paid;

@@ -11,6 +11,9 @@ type RegisterProductTileProps = {
   currency: string;
   /** Quantity already in the cart for this product (all variants). */
   inCart: number;
+  /** Whole units the outlet can still make; null when the recipe is unlimited. */
+  sellable?: number | null;
+  unlimited?: boolean;
   onPress: (product: Product) => void;
   columns: number;
 };
@@ -23,6 +26,8 @@ export function RegisterProductTile({
   product,
   currency,
   inCart,
+  sellable,
+  unlimited,
   onPress,
   columns,
 }: RegisterProductTileProps) {
@@ -31,12 +36,30 @@ export function RegisterProductTile({
   const monogram = product.name.trim().charAt(0).toUpperCase() || "?";
   const compact = columns >= 3;
 
+  // Ingredient-limited products stop at what the outlet can still make.
+  const capped = unlimited !== true && typeof sellable === "number";
+  const outOfStock = capped && sellable <= 0;
+  const maxed = capped && sellable > 0 && inCart >= sellable;
+  const blocked = outOfStock || maxed;
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Add ${product.name} to cart`}
+      accessibilityLabel={
+        outOfStock
+          ? `${product.name} is out of stock`
+          : maxed
+            ? `${product.name} is at its sellable limit`
+            : `Add ${product.name} to cart`
+      }
+      accessibilityState={{ disabled: blocked }}
+      disabled={blocked}
       onPress={() => onPress(product)}
-      style={({ pressed }) => [styles.root, pressed ? { opacity: 0.82 } : null]}
+      style={({ pressed }) => [
+        styles.root,
+        blocked ? styles.blocked : null,
+        pressed ? { opacity: 0.82 } : null,
+      ]}
     >
       <Card padded={false} style={styles.card}>
         <View
@@ -96,11 +119,15 @@ export function RegisterProductTile({
               style={{
                 fontFamily: fonts.semibold,
                 fontSize: compact ? 12.5 : 14,
-                color: colors.ink,
+                color: outOfStock ? colors.danger : colors.ink,
               }}
               numberOfLines={1}
             >
-              {formatMoney(product.sellingPrice, currency)}
+              {outOfStock
+                ? "Out of stock"
+                : maxed
+                  ? `Max ${sellable}`
+                  : formatMoney(product.sellingPrice, currency)}
             </Text>
 
             {hasVariants ? (
@@ -130,6 +157,9 @@ export function RegisterProductTile({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  blocked: {
+    opacity: 0.55,
   },
   card: {
     flex: 1,

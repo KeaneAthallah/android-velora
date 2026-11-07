@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { router } from "expo-router";
 import { Tabs } from "expo-router/js-tabs";
 import { Building2 } from "lucide-react-native";
 import { useTheme } from "@/theme";
@@ -49,7 +50,8 @@ export default function TabsLayout() {
             ? `${session.user.name}, your account is not linked to a business.`
             : "Your account is not linked to a business."
         }
-        hint="Create a business and its first outlet in the Velora web app, then pull to refresh here."
+        hint="Create the business and its first outlet in a couple of steps right here."
+        onSetup={() => router.push("/workspace-setup")}
         onRefresh={handleRefresh}
         refreshing={refreshing}
         onSignOut={handleSignOut}
@@ -64,7 +66,9 @@ export default function TabsLayout() {
         icon={Building2}
         title="No outlet in this business"
         description={`${business.name} has no outlets yet, so there is no store to operate.`}
-        hint="Add an outlet in the Velora web app, then refresh to pick it up."
+        hint="Add the store you sell from — you can do it right here."
+        onSetup={() => router.push("/workspace-setup")}
+        setupLabel="Add an outlet"
         onRefresh={handleRefresh}
         refreshing={refreshing}
         onSignOut={handleSignOut}
