@@ -9,10 +9,12 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
+import type { Href } from "expo-router";
 import * as Crypto from "expo-crypto";
 import {
   ChevronRight,
   PackageSearch,
+  ScanLine,
   ShoppingCart,
   SlidersHorizontal,
 } from "lucide-react-native";
@@ -225,6 +227,25 @@ export default function SalesScreen() {
           outlet ? `${outlet.name} · ${formatQuantity(itemCount)} in cart` : "Point of sale"
         }
         showAvatar
+        right={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Scan a barcode"
+            hitSlop={8}
+            onPress={() => router.push("/scan" as Href)}
+            style={({ pressed }) => [
+              styles.scanButton,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderRadius: radii.full,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <ScanLine size={18} color={colors.ink} />
+          </Pressable>
+        }
       />
 
       <View style={styles.controls}>
@@ -473,6 +494,13 @@ export default function SalesScreen() {
 }
 
 const styles = StyleSheet.create({
+  scanButton: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
   controls: {
     paddingHorizontal: 16,
     paddingBottom: 12,

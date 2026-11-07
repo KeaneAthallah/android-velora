@@ -372,6 +372,8 @@ export type RecipeProduct = {
 /** `GET /memberships` — one teammate's seat in the business. */
 export type TeamMember = {
   id: string;
+  /** `users.id` — the id attendance and leave rows reference. */
+  userId: string;
   name: string;
   email: string;
   roleId: string | null;

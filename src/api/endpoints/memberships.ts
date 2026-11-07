@@ -5,6 +5,7 @@ type RawOutlet = { id?: number | string | null; name?: string | null };
 
 type RawMembership = {
   id: number | string;
+  user_id?: number | string | null;
   role_id?: number | string | null;
   role?: { name?: string | null } | null;
   user?: { name?: string | null; email?: string | null } | null;
@@ -28,6 +29,7 @@ export async function fetchTeamMembers(): Promise<TeamMember[]> {
 
   return (page.data ?? []).map((raw) => ({
     id: String(raw.id),
+    userId: raw.user_id == null ? String(raw.id) : String(raw.user_id),
     name: raw.user?.name ?? "Unnamed member",
     email: raw.user?.email ?? "",
     roleId: raw.role_id == null ? null : String(raw.role_id),

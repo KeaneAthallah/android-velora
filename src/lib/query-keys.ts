@@ -52,4 +52,22 @@ export const queryKeys = {
   channels: (businessId: string | null) => ["channels", businessId] as const,
   subscription: (businessId: string | null) =>
     ["subscription", businessId] as const,
+  attendances: (businessId: string | null, outletId: string | null) =>
+    ["attendance", businessId, outletId] as const,
+  leaveRequests: (businessId: string | null, status: string) =>
+    ["leave", businessId, status] as const,
+  leaveCategories: (businessId: string | null) =>
+    ["leave", "categories", businessId] as const,
+  storefronts: (businessId: string | null) =>
+    ["storefronts", businessId] as const,
+  storefrontOrders: (businessId: string | null, storefrontId: string) =>
+    ["storefronts", businessId, storefrontId, "orders"] as const,
+  financialSummary: (
+    businessId: string | null,
+    outletId: string | null,
+    from: string,
+    to: string,
+  ) => ["finance", businessId, outletId, from, to] as const,
+  aging: (businessId: string | null, kind: "ar" | "ap") =>
+    ["finance", businessId, "aging", kind] as const,
 };

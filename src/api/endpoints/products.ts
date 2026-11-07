@@ -129,6 +129,34 @@ export async function fetchProduct(id: string): Promise<Product> {
   return mapProduct(raw);
 }
 
+/**
+ * Resolve a scanned code to a product.
+ *
+ * The API has no barcode lookup, so this searches the catalogue (which matches
+ * SKU and name server-side) and then requires an exact barcode or SKU match so
+ * a partial name hit can never be added to a sale by accident.
+ */
+export async function fetchProductByBarcode(
+  code: string,
+): Promise<Product | null> {
+  const trimmed = code.trim();
+  if (!trimmed) return null;
+
+  const page = await apiRequest<Paginated<RawProduct>>("/products/search", {
+    params: { search: trimmed, per_page: 20, is_active: 1 },
+  });
+
+  const products = (page.data ?? []).map(mapProduct);
+  const matches = (product: Product) =>
+    product.sku === trimmed ||
+    product.barcodes.some((barcode) => barcode.barcode === trimmed) ||
+    product.variants.some(
+      (variant) => variant.sku === trimmed || variant.barcode === trimmed,
+    );
+
+  return products.find(matches) ?? null;
+}
+
 export async function fetchCategories(): Promise<ProductCategory[]> {
   const page = await apiRequest<Paginated<RawCategory>>("/categories", {
     params: { per_page: 100 },
