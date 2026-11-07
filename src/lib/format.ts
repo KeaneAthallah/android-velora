@@ -27,6 +27,33 @@ export function formatMoney(value: string | number | null | undefined, currency:
   }
 }
 
+/**
+ * Format a price per unit of measure (`parcelCost ÷ parcelQuantity`). Unlike
+ * `formatMoney` this keeps fractional minor units, so a per-gram price of
+ * 0.0875 IDR reads as such instead of rounding down to zero.
+ */
+export function formatUnitPrice(
+  value: string | number | null | undefined,
+  currency: string,
+): string {
+  if (value == null || value === "") return "—";
+  const amount = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(amount)) return String(value);
+
+  const digits = fractionDigits(currency);
+
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      minimumFractionDigits: digits,
+      maximumFractionDigits: Math.max(digits, 4),
+    }).format(amount);
+  } catch {
+    return `${currency.toUpperCase()} ${amount.toFixed(4).replace(/\.?0+$/, "")}`;
+  }
+}
+
 /** `"18.0000"` → `"18"`, `"2.5000"` → `"2.5"`. */
 export function formatQuantity(value: string | number | null | undefined): string {
   if (value == null || value === "") return "0";

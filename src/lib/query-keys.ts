@@ -46,6 +46,17 @@ export const queryKeys = {
   stocktake: (businessId: string | null, stocktakeId: string) =>
     ["stocktake", businessId, stocktakeId] as const,
   recipes: (businessId: string | null) => ["recipes", businessId] as const,
+  ingredientUsage: (businessId: string | null, outletId: string | null) =>
+    ["ingredients", "usage", businessId, outletId] as const,
+  recipeAvailability: (businessId: string | null, outletId: string | null) =>
+    ["recipes", "availability", businessId, outletId] as const,
+  reorderForecast: (businessId: string | null, outletId: string | null) =>
+    ["reorder", "forecast", businessId, outletId] as const,
+  ingredientMovements: (
+    businessId: string | null,
+    outletId: string | null,
+    ingredientId: string | null,
+  ) => ["ingredients", "movements", businessId, outletId, ingredientId] as const,
   teamMembers: (businessId: string | null) =>
     ["memberships", businessId] as const,
   roles: (businessId: string | null) => ["roles", businessId] as const,

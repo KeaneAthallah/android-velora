@@ -369,6 +369,72 @@ export type RecipeProduct = {
   lines: RecipeLine[];
 };
 
+/** One product's recipe share of an ingredient, from the ingredients dashboard. */
+export type IngredientUsageProduct = {
+  productId: string;
+  productName: string | null;
+  productVariantId: string | null;
+  /** Quantity as written on the recipe line, in `unit`. */
+  quantity: string;
+  unit: string;
+  /** The same quantity converted into the ingredient's stocking unit. */
+  quantityInIngredientUnit: string;
+  /** Whole units still producible from the outlet balance; null when no stock. */
+  producible: number | null;
+};
+
+/** `GET /ingredients/dashboard` — stock, usage and where an ingredient goes. */
+export type IngredientUsage = {
+  ingredientId: string;
+  name: string;
+  sku: string;
+  unit: string;
+  remaining: string;
+  consumed: string;
+  received: string;
+  reorderLevel: string;
+  lowStock: boolean;
+  trackInventory: boolean;
+  products: IngredientUsageProduct[];
+};
+
+/** One `ingredient_movements` row: a purchase, sale deduction, void or wastage. */
+export type IngredientStockMovement = {
+  id: string;
+  ingredientId: string;
+  type: string;
+  /** Signed quantity in the ingredient's stocking unit. */
+  quantity: string;
+  balanceAfter: string;
+  referenceType: string | null;
+  referenceId: string | null;
+  reason: string | null;
+  actorName: string | null;
+  createdAt: string;
+};
+
+/** One ingredient's contribution to a product's sellable count. */
+export type AvailabilityLine = {
+  ingredientId: string;
+  ingredientName: string;
+  unit: string;
+  available: string;
+  requiredPerUnit: string;
+  reorderLevel: string;
+  possible: number;
+};
+
+/** `GET /recipes/availability` — how many whole units an outlet can still make. */
+export type ProductAvailability = {
+  productId: string;
+  productName: string;
+  /** null when the recipe has no tracked ingredients. */
+  sellable: number | null;
+  unlimited: boolean;
+  status: "available" | "low_stock" | "out_of_stock";
+  limiting: AvailabilityLine | null;
+};
+
 /** `GET /memberships` — one teammate's seat in the business. */
 export type TeamMember = {
   id: string;
@@ -416,6 +482,111 @@ export type SubscriptionUsageMetric = {
   remaining: number | null;
   percent: number;
   unlimited: boolean;
+};
+
+/** How a reorder forecast was produced: recipe demand, photo/use pattern, none. */
+export type ReorderMethod = "recipe-demand" | "photo-demand" | "none";
+
+/** Theoretical recipe usage vs product units actually sold over the lookback. */
+export type ReorderConsumption = {
+  theoretical: string;
+  soldUnits: number;
+  recipeDriven: boolean;
+};
+
+/** Shelf-life risk for a perishable ingredient, when the server can model it. */
+export type ReorderWasteRisk = {
+  likelyWasteQuantity: string;
+  note: string;
+};
+
+/** The forecast a parcel's supplier lead time would produce. */
+export type ReorderParcelPreview = {
+  leadTimeDays: number;
+  leadTimeDemand: string;
+  targetStock: string;
+  reorderQuantity: string;
+  predictedStockAtReorderDate: string;
+  /** Whole parcels needed for `reorderQuantity`, or null if the size is unknown. */
+  parcelsRequired: number | null;
+  /** `parcelsRequired × parcelCost`, priced by the server. */
+  totalCost: string | null;
+  /** Stock still on hand after the cover window, from buying whole parcels. */
+  leftoverStock: string | null;
+};
+
+/** A supplier parcel suggested for a product line; the copilot never orders it. */
+export type ReorderParcel = {
+  parcelQuantity: string;
+  parcelCost: string;
+  /** `parcelCost ÷ parcelQuantity`, i.e. the price per ingredient unit. */
+  unitCost: string | null;
+  supplierId: string;
+  supplierName: string | null;
+  supplierLeadTimeDays: number | null;
+  /** null when the supplier has no lead time, so the parcel changes nothing. */
+  preview: ReorderParcelPreview | null;
+};
+
+/** Photo/use-pattern model output, used when an ingredient has no recipe. */
+export type ReorderPhotoPattern = {
+  patternId: string;
+  name: string;
+  consumptionRate: string;
+  photoShareEstimate: string;
+  suggestedParcels: ReorderParcel[];
+};
+
+/** `GET /reorder/forecast` — one ingredient's projected demand and buy quantity. */
+export type ReorderIngredientForecast = {
+  method: ReorderMethod;
+  dailyDemand: string;
+  leadTimeDemand: string;
+  /** null when the ingredient has no demand model. */
+  targetStock: string | null;
+  currentStock: string;
+  reorderQuantity: string;
+  reorderQuantityUnit: string;
+  reorderReason: string;
+  predictedStockAtReorderDate: string;
+  daysOfStockRemaining: string | null;
+  wasteRisk: ReorderWasteRisk | null;
+  blindSpot: string | null;
+  shelfLifeNote: string | null;
+  leadTimeDays: number | null;
+};
+
+/** `GET /reorder/forecast` — an ingredient with its forecast and consumption. */
+export type ReorderIngredient = {
+  id: string;
+  name: string;
+  sku: string;
+  unit: string;
+  costPerUnit: string;
+  currentStock: string;
+  reorderLevel: string;
+  shelfLifeDays: number;
+  isTracked: boolean;
+  leadTimeDays: number;
+  photoPattern: ReorderPhotoPattern | null;
+  /** Supplier parcels recorded for this ingredient, cheapest per unit first. */
+  suggestedParcels: ReorderParcel[];
+  forecast: ReorderIngredientForecast;
+  consumption: ReorderConsumption;
+};
+
+/** `GET /reorder/forecast` — read-only demand forecast for the active outlet. */
+export type ReorderForecast = {
+  forecastAt: string;
+  lookback: { from: string; until: string; days: number };
+  settings: {
+    defaultLeadDays: number;
+    minCoverageDays: number;
+    models: { demand: boolean; shelfLife: boolean; leadTime: boolean };
+  };
+  ingredients: ReorderIngredient[];
+  purchaseMoneyBudget: { amount: string; currency: string; note: string };
+  suggestedParcelsByProduct: Record<string, ReorderParcel[]>;
 };
 
 /** `GET /subscription` — plan, period, usage meters and feature flags. */
