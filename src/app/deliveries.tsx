@@ -16,6 +16,8 @@ import { ScreenScroll } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { formatMoney } from "@/lib/format";
+import { useToast } from "@/components/providers/toast";
+import { errorMessage } from "@/api/client";
 import {
   fetchDeliveryBoard,
   updateDeliveryStatus,
@@ -43,6 +45,7 @@ export default function DeliveriesScreen() {
   const { business } = useTenant();
   const currency = business?.currency ?? "IDR";
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const canManage = has("deliveries.manage");
 
   const board = useQuery({
@@ -54,7 +57,11 @@ export default function DeliveriesScreen() {
   const advance = useMutation({
     mutationFn: ({ id, status }: { id: string; status: DeliveryStatus }) =>
       updateDeliveryStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries", "board"] }),
+    onSuccess: (_data, variables) => {
+      showToast(`Delivery marked ${variables.status.replace(/_/g, " ")}`, "success");
+      queryClient.invalidateQueries({ queryKey: ["deliveries", "board"] });
+    },
+    onError: (error) => showToast(errorMessage(error), "danger"),
   });
 
   const activeColumns = useMemo(

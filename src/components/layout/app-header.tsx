@@ -104,6 +104,7 @@ export function AppHeader({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Open settings"
+              hitSlop={4}
               onPress={() => router.push("/settings")}
               style={({ pressed }) => (pressed ? styles.avatarPressed : undefined)}
             >

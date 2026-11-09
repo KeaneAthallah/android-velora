@@ -177,7 +177,7 @@ export function PaymentSection({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Remove ${methodName(payment.method)} payment`}
-                hitSlop={8}
+                hitSlop={10}
                 onPress={() => removePayment(index)}
                 style={styles.removeButton}
               >
@@ -279,7 +279,12 @@ export function PaymentSection({
           </View>
 
           {validation ? (
-            <Text variant="caption" color={colors.danger}>
+            <Text
+              variant="caption"
+              color={colors.danger}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
               {validation}
             </Text>
           ) : null}
@@ -313,7 +318,10 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   removeButton: {
-    padding: 4,
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
   },
   balance: {
     flexDirection: "row",
@@ -329,7 +337,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   methodChip: {
-    paddingHorizontal: 13,
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
   },

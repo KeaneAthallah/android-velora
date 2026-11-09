@@ -16,6 +16,7 @@ import { Screen, ScreenScroll } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { errorMessage } from "@/api/client";
+import { useToast } from "@/components/providers/toast";
 import {
   checkIn,
   checkOut,
@@ -56,6 +57,7 @@ export default function AttendanceScreen() {
   const { business, businessId, outlet } = useTenant();
   const outletId = outlet?.id ?? null;
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
 
   const canView = has("attendance.view");
   const canManage = has("attendance.manage");
@@ -88,19 +90,21 @@ export default function AttendanceScreen() {
   );
   const lastMine = myRecord ?? records.find((record) => record.userId === myUserId);
 
-  const onDone = () =>
-    queryClient.invalidateQueries({
+  const onDone = (message: string) => {
+    showToast(message, "success");
+    return queryClient.invalidateQueries({
       queryKey: queryKeys.attendances(businessId, outletId),
     });
+  };
 
   const signIn = useMutation({
     mutationFn: () => checkIn({ outletId }),
-    onSuccess: onDone,
+    onSuccess: () => onDone("Checked in"),
   });
 
   const signOut = useMutation({
     mutationFn: (id: string) => checkOut(id),
-    onSuccess: onDone,
+    onSuccess: () => onDone("Checked out"),
   });
 
   const pending = signIn.isPending || signOut.isPending;
@@ -198,7 +202,12 @@ export default function AttendanceScreen() {
               )}
 
               {actionError ? (
-                <Text variant="caption" color={colors.danger}>
+                <Text
+                  variant="caption"
+                  color={colors.danger}
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="assertive"
+                >
                   {errorMessage(actionError)}
                 </Text>
               ) : null}

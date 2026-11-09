@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Package, Plus } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { AlertTriangle, ChevronRight, Package, Plus } from "lucide-react-native";
 import { formatQuantity } from "@/lib/format";
 import { useTheme } from "@/theme";
 import { useAuth } from "@/providers/auth-provider";
@@ -9,6 +10,7 @@ import {
   useAdjustStockMutation,
   useStockableProducts,
 } from "@/features/inventory/use-inventory";
+import { useIngredientUsage } from "@/features/recipes/use-ingredient-usage";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/ui/screen";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +26,10 @@ import { TextField } from "@/components/ui/text-field";
 export default function InventoryScreen() {
   const { colors } = useTheme();
   const { has } = useAuth();
+  const router = useRouter();
 
   const balancesQuery = useInventoryBalances();
+  const usageQuery = useIngredientUsage();
   const adjustMutation = useAdjustStockMutation();
   const stockableQuery = useStockableProducts();
 
@@ -44,6 +48,16 @@ export default function InventoryScreen() {
   const stockable = stockableQuery.data ?? [];
 
   const balances = balancesQuery.data ?? [];
+
+  // Ingredients under their safety floor, even when reorder alerts are quiet.
+  const criticalIngredients = (usageQuery.data ?? []).filter(
+    (row) => row.trackInventory && row.critical,
+  );
+  const criticalNames = criticalIngredients
+    .slice(0, 3)
+    .map((row) => row.name)
+    .join(", ");
+  const criticalExtra = criticalIngredients.length - 3;
 
   const adjusting = balances.find((b) => b.id === adjustingId) ?? null;
 
@@ -151,6 +165,45 @@ export default function InventoryScreen() {
           ) : undefined
         }
       />
+
+      {criticalIngredients.length > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={`${criticalIngredients.length} ${
+            criticalIngredients.length === 1 ? "ingredient is" : "ingredients are"
+          } at or below safety stock: ${criticalNames}. Open ingredients.`}
+          onPress={() => router.push("/recipes")}
+          style={({ pressed }) => [
+            styles.criticalBanner,
+            {
+              backgroundColor: colors.dangerBg,
+              borderColor: colors.danger,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+        >
+          <AlertTriangle size={18} color={colors.danger} />
+          <View style={styles.criticalText}>
+            <Text
+              variant="bodySmall"
+              color={colors.danger}
+              style={styles.criticalTitle}
+            >
+              {criticalIngredients.length}{" "}
+              {criticalIngredients.length === 1
+                ? "ingredient is"
+                : "ingredients are"}{" "}
+              at or below safety stock
+            </Text>
+            <Text variant="caption" color={colors.danger} numberOfLines={2}>
+              {criticalNames}
+              {criticalExtra > 0 ? ` +${criticalExtra} more` : ""}
+            </Text>
+          </View>
+          <ChevronRight size={16} color={colors.danger} />
+        </Pressable>
+      ) : null}
 
       {balancesQuery.isLoading ? (
         <View style={styles.skeletonWrap}>
@@ -368,4 +421,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     maxWidth: 220,
   },
+  criticalBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  criticalText: { flex: 1, gap: 2 },
+  criticalTitle: { fontWeight: "700" },
 });

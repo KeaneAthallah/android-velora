@@ -79,7 +79,9 @@ type RawUsage = {
   consumed?: string | number | null;
   received?: string | number | null;
   reorder_level?: string | number | null;
+  safety_stock?: string | number | null;
   low_stock?: boolean;
+  critical?: boolean;
   track_inventory?: boolean;
   products?: RawUsageProduct[];
 };
@@ -114,7 +116,9 @@ export async function fetchIngredientUsage(outletId: string): Promise<Ingredient
     consumed: String(raw.consumed ?? "0"),
     received: String(raw.received ?? "0"),
     reorderLevel: String(raw.reorder_level ?? "0"),
+    safetyStock: String(raw.safety_stock ?? "0"),
     lowStock: Boolean(raw.low_stock),
+    critical: Boolean(raw.critical),
     trackInventory: raw.track_inventory !== false,
     products: (raw.products ?? []).map(mapUsageProduct),
   }));

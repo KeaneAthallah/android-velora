@@ -64,6 +64,7 @@ export default function OrdersScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="New order"
+              hitSlop={4}
               onPress={() => router.push("/order/new")}
               style={({ pressed }) => [styles.addButton, { opacity: pressed ? 0.8 : 1 }]}
             >

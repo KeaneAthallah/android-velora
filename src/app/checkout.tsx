@@ -18,6 +18,7 @@ import { sumAmounts } from "@/lib/money";
 import { useTheme } from "@/theme";
 import { useTenant } from "@/providers/tenant-provider";
 import { useOffline } from "@/providers/offline-provider";
+import { useToast } from "@/components/providers/toast";
 import { cartItemCount, useCartStore } from "@/features/pos/cart-store";
 import { toSaleLines, useCartPreview, usePaymentMethods } from "@/features/pos/use-pos";
 import { useCheckout } from "@/features/pos/use-checkout";
@@ -45,6 +46,7 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const { business, outlet } = useTenant();
   const { isOnline, enqueue } = useOffline();
+  const { showToast } = useToast();
 
   const lines = useCartStore((state) => state.lines);
   const orderType = useCartStore((state) => state.orderType);
@@ -112,6 +114,7 @@ export default function CheckoutScreen() {
       clear();
       setPayments([]);
       checkout.reset();
+      showToast("Offline — sale queued and will sync when the connection returns.", "warning");
       router.replace("/sales");
       return;
     }
@@ -156,10 +159,15 @@ export default function CheckoutScreen() {
         clear();
         setPayments([]);
         checkout.reset();
-        setError("Connection dropped — sale queued for sync.");
+        // The cart is empty now, so this screen switches to its "Nothing to
+        // check out" state and an inline message would never be seen.
+        showToast("Connection dropped — sale queued for sync.", "warning");
+        router.replace("/sales");
         return;
       }
-      setError(errorMessage(submitError, "Checkout failed."));
+      const message = errorMessage(submitError, "Checkout failed.");
+      setError(message);
+      showToast(message, "danger");
     }
   };
 
@@ -375,7 +383,12 @@ export default function CheckoutScreen() {
 
         {error ? (
           <Card style={[styles.errorCard, { borderColor: colors.dangerBorder }]}>
-            <Text variant="bodySmall" color={colors.danger}>
+            <Text
+              variant="bodySmall"
+              color={colors.danger}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="assertive"
+            >
               {error}
             </Text>
             {checkout.saleId ? (

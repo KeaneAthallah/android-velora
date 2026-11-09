@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { TextField } from "@/components/ui/text-field";
 import { errorMessage } from "@/api/client";
+import { useToast } from "@/components/providers/toast";
 import {
   createLeaveRequest,
   decideLeaveRequest,
@@ -65,6 +66,7 @@ export default function ApprovalsScreen() {
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const requestsQuery = useQuery({
     queryKey: queryKeys.leaveRequests(businessId, filter),
@@ -86,8 +88,12 @@ export default function ApprovalsScreen() {
   const decide = useMutation({
     mutationFn: ({ request, status }: { request: LeaveRequest; status: "approved" | "rejected" }) =>
       decideLeaveRequest(request.id, { status }),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       setDecision(null);
+      showToast(
+        variables.status === "approved" ? "Leave approved" : "Leave rejected",
+        "success",
+      );
       await refresh();
     },
     onError: () => setDecision(null),
@@ -108,6 +114,7 @@ export default function ApprovalsScreen() {
       setEndDate("");
       setReason("");
       setFormError(null);
+      showToast("Leave request sent", "success");
       await refresh();
     },
     onError: (error) => setFormError(errorMessage(error)),
@@ -205,6 +212,8 @@ export default function ApprovalsScreen() {
 
         {decide.isError ? (
           <View
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             style={[
               styles.errorBanner,
               { backgroundColor: colors.dangerBg, borderRadius: radii.md },

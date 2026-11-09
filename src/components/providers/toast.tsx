@@ -82,6 +82,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           exiting={FadeOut.duration(140)}
           style={[styles.wrapper, { bottom: insets.bottom + 76 }]}
           pointerEvents="none"
+          // Announce the message: without a live region every confirmation and
+          // error would be silent for a screen-reader user.
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
         >
           <View
             style={[

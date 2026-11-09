@@ -33,6 +33,7 @@ export function Sheet({ visible, onClose, title, description, children }: SheetP
         />
 
         <View
+          accessibilityViewIsModal
           style={[
             styles.sheet,
             {
@@ -72,6 +73,9 @@ export function Sheet({ visible, onClose, title, description, children }: SheetP
             style={styles.body}
             contentContainerStyle={styles.bodyContent}
             showsVerticalScrollIndicator={false}
+            // Without this, the first tap on a button under an open keyboard
+            // only dismisses the keyboard and the action never fires.
+            keyboardShouldPersistTaps="handled"
           >
             {children}
           </ScrollView>

@@ -393,7 +393,11 @@ export type IngredientUsage = {
   consumed: string;
   received: string;
   reorderLevel: string;
+  /** Hard floor below the reorder level; 0 means no floor is set. */
+  safetyStock: string;
   lowStock: boolean;
+  /** At or under the safety stock, even if the reorder level has not fired. */
+  critical: boolean;
   trackInventory: boolean;
   products: IngredientUsageProduct[];
 };

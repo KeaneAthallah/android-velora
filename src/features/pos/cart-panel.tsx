@@ -76,7 +76,7 @@ function QuantityStepper({ line }: { line: CartLine }) {
             ? `Remove ${line.name} from the cart`
             : `Decrease ${line.name} quantity`
         }
-        hitSlop={6}
+        hitSlop={8}
         onPress={() => {
           if (line.quantity <= 1) removeLine(line.key);
           else decrement(line.key);
@@ -104,7 +104,7 @@ function QuantityStepper({ line }: { line: CartLine }) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Increase ${line.name} quantity`}
-        hitSlop={6}
+        hitSlop={8}
         onPress={() => increment(line.key)}
         style={({ pressed }) => [
           styles.stepperButton,
@@ -269,7 +269,12 @@ export function CartPanel({
             <TotalsRow label="Total" value={formatMoney(preview.total, currency)} emphasis />
           </>
         ) : previewError ? (
-          <Text variant="bodySmall" color={colors.danger}>
+          <Text
+            variant="bodySmall"
+            color={colors.danger}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
             {isNetworkError(previewError)
               ? "Can’t price this cart while offline. Reconnect before taking payment."
               : previewError instanceof Error
@@ -314,7 +319,7 @@ export function CartPanel({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Clear the cart"
-            hitSlop={8}
+            hitSlop={10}
             onPress={onClear}
           >
             <Text variant="caption" color={colors.danger}>
